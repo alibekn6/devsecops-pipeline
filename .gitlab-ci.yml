@@ -1,11 +1,15 @@
 stages:
   - test
   - build
+  - smoke 
 
 test_job:
   stage: test
+  image: docker:latest
+  variables:
+    APP: app-$CI_JOB_ID
   script:
-    - docker build -t app:dev .
+    - docker build -t app:dev . 
     - docker run --rm -p 8000:8000 app:dev
     - curl localhost:8000/health
 
@@ -13,3 +17,17 @@ build_job:
   stage: build
   script:
     - echo "Hello!"
+
+
+smoke_job:
+  stage: smoke
+  image: docker:latest
+  variables:
+    APP: app-smoke-$CI_JOB_ID
+  script:
+    - docker run -d --name $APP app:dev
+    - docker run --rm --network container:$APP curlimages/curl
+        -f --retry 10 --retry-delay 2 --retry-connrefused
+        http://localhost:8000/health
+  after_script:
+    - docker rm -f $APP 
