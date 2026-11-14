@@ -1,0 +1,15 @@
+stages:
+  - test
+  - build
+
+test_job:
+  stage: test
+  script:
+    - docker build -t app:dev .
+    - docker run --rm -p 8000:8000 app:dev
+    - curl localhost:8000/health
+
+build_job:
+  stage: build
+  script:
+    - echo "Hello!"
