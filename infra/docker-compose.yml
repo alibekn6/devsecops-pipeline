@@ -1,0 +1,16 @@
+services:
+  gitlab-runner:
+    image: gitlab/gitlab-runner:v19.5.3@sha256:ffe21f021468d4aa1e56f05316d88597c23bf4818840e8edaa858131fabd7991
+    container_name: gitlab-runner
+    restart: unless-stopped
+    volumes:
+      - ./runner-config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  runner-config:
