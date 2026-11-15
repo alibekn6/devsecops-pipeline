@@ -5,18 +5,20 @@ stages:
 
 test_job:
   stage: test
-  image: docker:latest
-  variables:
-    APP: app-$CI_JOB_ID
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+
   script:
-    - docker build -t app:dev . 
-    - docker run --rm -p 8000:8000 app:dev
-    - curl localhost:8000/health
+    - cd app 
+    - uv sync --locked
+    - uv run pytest -v
 
 build_job:
   stage: build
+  image: docker:latest
+
   script:
-    - echo "Hello!"
+    - cd app
+    - docker build -t app:$CI_COMMIT_SHORT_SHA .
 
 
 smoke_job:
@@ -25,7 +27,7 @@ smoke_job:
   variables:
     APP: app-smoke-$CI_JOB_ID
   script:
-    - docker run -d --name $APP app:dev
+    - docker run -d --name $APP app:$CI_COMMIT_SHORT_SHA
     - docker run --rm --network container:$APP curlimages/curl
         -f --retry 10 --retry-delay 2 --retry-connrefused
         http://localhost:8000/health
